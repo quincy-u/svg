@@ -13,8 +13,6 @@ import random
 import math
 import time
 
-from .env import dmc
-
 from gym import spaces
 
 
@@ -217,6 +215,7 @@ def make_norm_env(cfg):
             return env.env.seed(seed)
     else:
         assert cfg.env_name.startswith('dmc_')
+        from .env import dmc
         env = dmc.make(cfg)
 
         if cfg.pixels:

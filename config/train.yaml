@@ -14,7 +14,7 @@ replay_buffer_capacity: min(${num_train_steps}, 1e6)
 
 num_seed_steps: 1000
 
-eval_freq: ?? # Over-ridden by env
+eval_freq: 10000 # Over-ridden by env
 num_eval_episodes: 10
 fixed_eval: false
 
@@ -25,7 +25,7 @@ device: cuda
 action_repeat: 1
 
 log_freq: 10000
-log_save_tb: false
+log_save_tb: true
 
 save_video: false
 delete_replay_at_end: true

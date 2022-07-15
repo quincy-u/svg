@@ -42,7 +42,7 @@ def _register_environments(register, specs):
     return gym_ids
 
 def register_mbpo_environments():
-    _register_environments(gym.register, MBPO_ENVIRONMENT_SPECS)
+    _register_environments(gym.envs.register, MBPO_ENVIRONMENT_SPECS)
 
 def register_pets_environments():
     _register_environments(gym.envs.registration.register, PETS_ENVIRONMENT_SPECS)
