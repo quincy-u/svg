@@ -19,31 +19,33 @@ from gym import spaces
 # https://github.com/openai/gym/blob/master/gym/wrappers/rescale_action.py
 class RescaleAction(gym.ActionWrapper):
     def __init__(self, env, a, b):
-        assert isinstance(env.action_space, spaces.Box), (
-            "expected Box action space, got {}".format(type(env.action_space)))
+        assert isinstance(
+            env.action_space, spaces.Box
+        ), "expected Box action space, got {}".format(type(env.action_space))
         assert np.less_equal(a, b).all(), (a, b)
         super(RescaleAction, self).__init__(env)
         dtype = env.action_space.sample().dtype
         self.a = np.zeros(env.action_space.shape, dtype=dtype) + a
         self.b = np.zeros(env.action_space.shape, dtype=dtype) + b
-        self.action_space = spaces.Box(
-            low=a, high=b, shape=env.action_space.shape)
+        self.action_space = spaces.Box(low=a, high=b, shape=env.action_space.shape)
 
     def action(self, action):
         assert np.all(np.greater_equal(action, self.a)), (action, self.a)
         assert np.all(np.less_equal(action, self.b)), (action, self.b)
         low = self.env.action_space.low
         high = self.env.action_space.high
-        action = low + (high - low)*((action - self.a)/(self.b - self.a))
+        action = low + (high - low) * ((action - self.a) / (self.b - self.a))
         action = np.clip(action, low, high)
         return action
 
+
 def make_norm_env(cfg):
-    if 'gym' in cfg.env_name:
+    if "gym" in cfg.env_name:
         from mbbl.env.env_register import make_env
-        misc_info = {'reset_type': 'gym'}
-        if 'gym_pets' in cfg.env_name:
-            misc_info['pets'] = True
+
+        misc_info = {"reset_type": "gym"}
+        if "gym_pets" in cfg.env_name:
+            misc_info["pets"] = True
         env, meta = make_env(cfg.env_name, rand_seed=cfg.seed, misc_info=misc_info)
 
         env.metadata = env._env.metadata
@@ -52,106 +54,120 @@ def make_norm_env(cfg):
         env.unwrapped = env._env.unwrapped
         # env._configured = env._env._configured
         env.close = env._env.close
-        env = RescaleAction(env, -1., 1.)
+        env = RescaleAction(env, -1.0, 1.0)
         # assert np.all(env._env.action_space.high == env._env.action_space.high)
         assert not cfg.max_episode_steps
 
         # env.action_space = env._env.action_space
-        if cfg.env_name == 'gym_fswimmer' or 'gym_pets' in cfg.env_name:
-            env._max_episode_steps = env.env._env_info['max_length']
+        if cfg.env_name == "gym_fswimmer" or "gym_pets" in cfg.env_name:
+            env._max_episode_steps = env.env._env_info["max_length"]
         else:
             env._max_episode_steps = env.env._env._max_episode_steps
 
         def render(mode, height, width, camera_id):
-            frame = env.env._env.render(mode='rgb_array')
+            frame = env.env._env.render(mode="rgb_array")
             return frame
 
         env.render = render
 
         def set_seed(seed):
-            if 'gym_pets' in cfg.env_name or cfg.env_name == 'gym_fswimmer':
+            if "gym_pets" in cfg.env_name or cfg.env_name == "gym_fswimmer":
                 return env.env._env.seed(seed)
             else:
                 return env.env._env.env.seed(seed)
-    elif cfg.env_name == 'Humanoid-v2':
-        env = gym.make('Humanoid-v2')
-        env = RescaleAction(env, -1., 1.)
+
+    elif cfg.env_name == "Humanoid-v2":
+        env = gym.make("Humanoid-v2")
+        env = RescaleAction(env, -1.0, 1.0)
         assert not cfg.max_episode_steps
 
         env._max_episode_steps = env.env._max_episode_steps
 
         def render(mode, height, width, camera_id):
-            frame = env.env.render(mode='rgb_array')
+            frame = env.env.render(mode="rgb_array")
             return frame
+
         env.render = render
 
         def set_seed(seed):
             return env.env.seed(seed)
-    elif cfg.env_name == 'pets_cheetah':
+
+    elif cfg.env_name == "pets_cheetah":
         from svg.env import register_pets_environments
+
         register_pets_environments()
-        env = gym.make('PetsCheetah-v0')
-        env = RescaleAction(env, -1., 1.)
+        env = gym.make("PetsCheetah-v0")
+        env = RescaleAction(env, -1.0, 1.0)
         assert not cfg.max_episode_steps
 
         env._max_episode_steps = env.env._max_episode_steps
 
         def render(mode, height, width, camera_id):
-            frame = env.env.render(mode='rgb_array')
+            frame = env.env.render(mode="rgb_array")
             return frame
+
         env.render = render
 
         def set_seed(seed):
             return env.env.seed(seed)
-    elif cfg.env_name == 'pets_reacher':
+
+    elif cfg.env_name == "pets_reacher":
         from svg.env import register_pets_environments
+
         register_pets_environments()
-        env = gym.make('PetsReacher-v0')
-        env = RescaleAction(env, -1., 1.)
+        env = gym.make("PetsReacher-v0")
+        env = RescaleAction(env, -1.0, 1.0)
         assert not cfg.max_episode_steps
 
         env._max_episode_steps = env.env._max_episode_steps
 
         def render(mode, height, width, camera_id):
-            frame = env.env.render(mode='rgb_array')
+            frame = env.env.render(mode="rgb_array")
             return frame
+
         env.render = render
 
         def set_seed(seed):
             return env.env.seed(seed)
-    elif cfg.env_name == 'pets_pusher':
+
+    elif cfg.env_name == "pets_pusher":
         from svg.env import register_pets_environments
+
         register_pets_environments()
-        env = gym.make('PetsPusher-v0')
-        env = RescaleAction(env, -1., 1.)
+        env = gym.make("PetsPusher-v0")
+        env = RescaleAction(env, -1.0, 1.0)
         assert not cfg.max_episode_steps
 
         env._max_episode_steps = env.env._max_episode_steps
 
         def render(mode, height, width, camera_id):
-            frame = env.env.render(mode='rgb_array')
+            frame = env.env.render(mode="rgb_array")
             return frame
+
         env.render = render
 
         def set_seed(seed):
             return env.env.seed(seed)
-    elif cfg.env_name == 'mbpo_hopper':
-        env = gym.make('Hopper-v2')
-        env = RescaleAction(env, -1., 1.)
+
+    elif cfg.env_name == "mbpo_hopper":
+        env = gym.make("Hopper-v2")
+        env = RescaleAction(env, -1.0, 1.0)
         assert not cfg.max_episode_steps
 
         env._max_episode_steps = env.env._max_episode_steps
 
         def render(mode, height, width, camera_id):
-            frame = env.env.render(mode='rgb_array')
+            frame = env.env.render(mode="rgb_array")
             return frame
+
         env.render = render
 
         def set_seed(seed):
             return env.env.seed(seed)
-    elif cfg.env_name == 'mbpo_walker2d':
-        env = gym.make('Walker2d-v2')
-        env = RescaleAction(env, -1., 1.)
+
+    elif cfg.env_name == "mbpo_walker2d":
+        env = gym.make("Walker2d-v2")
+        env = RescaleAction(env, -1.0, 1.0)
         assert not cfg.max_episode_steps
 
         env._max_episode_steps = env.env._max_episode_steps
@@ -159,70 +175,103 @@ def make_norm_env(cfg):
         # env.reset_old = env.reset
         # env.reset = lambda: env.reset_old()[0]
         def render(mode, height, width, camera_id):
-            frame = env.env.render(mode='rgb_array')
+            frame = env.env.render(mode="rgb_array")
             return frame
+
         env.render = render
 
         def set_seed(seed):
             return env.env.seed(seed)
-    elif cfg.env_name == 'mbpo_ant':
+
+    elif cfg.env_name == "mbpo_ant":
         from .env import register_mbpo_environments
+
         register_mbpo_environments()
-        env = gym.make('AntTruncatedObs-v2')
-        env = RescaleAction(env, -1., 1.)
+        env = gym.make("AntTruncatedObs-v2")
+        env = RescaleAction(env, -1.0, 1.0)
         assert not cfg.max_episode_steps
 
         env._max_episode_steps = env.env._max_episode_steps
 
         def render(mode, height, width, camera_id):
-            frame = env.env.render(mode='rgb_array')
+            frame = env.env.render(mode="rgb_array")
             return frame
+
         env.render = render
 
         def set_seed(seed):
             return env.env.seed(seed)
-    elif cfg.env_name == 'mbpo_cheetah':
+
+    elif cfg.env_name == "mbpo_cheetah":
         from svg.env import register_mbpo_environments
+
         register_mbpo_environments()
-        env = gym.make('HalfCheetah-v2')
-        env = RescaleAction(env, -1., 1.)
+        env = gym.make("HalfCheetah-v2")
+        env = RescaleAction(env, -1.0, 1.0)
         assert not cfg.max_episode_steps
 
         env._max_episode_steps = env.env._max_episode_steps
 
         def render(mode, height, width, camera_id):
-            frame = env.env.render(mode='rgb_array')
+            frame = env.env.render(mode="rgb_array")
             return frame
+
         env.render = render
 
         def set_seed(seed):
             return env.env.seed(seed)
-    elif cfg.env_name == 'mbpo_humanoid':
+
+    elif cfg.env_name == "mbpo_humanoid":
         from svg.env import register_mbpo_environments
+
         register_mbpo_environments()
-        env = gym.make('HumanoidTruncatedObs-v2')
-        env = RescaleAction(env, -1., 1.)
+        env = gym.make("HumanoidTruncatedObs-v2")
+        env = RescaleAction(env, -1.0, 1.0)
         assert not cfg.max_episode_steps
 
         env._max_episode_steps = env.env._max_episode_steps
 
         def render(mode, height, width, camera_id):
-            frame = env.env.render(mode='rgb_array')
+            frame = env.env.render(mode="rgb_array")
             return frame
+
         env.render = render
 
         def set_seed(seed):
             return env.env.seed(seed)
+
+    elif cfg.env_name == "ig_allegro_grasp":
+        import isaacgymenvs
+        from isaacgymenvs.utils.utils import set_seed
+
+        env = isaacgymenvs.make(
+            cfg.seed,
+            cfg.task_name,
+            cfg.num_envs,
+            cfg.sim_device,
+            cfg.rl_device,
+            cfg.graphics_device_id,
+            cfg.headless,
+            cfg.multi_gpu,
+            cfg.capture_video,
+            cfg.force_render,
+            cfg,
+        )
+
     else:
-        assert cfg.env_name.startswith('dmc_')
+        assert cfg.env_name.startswith("dmc_")
         from .env import dmc
+
         env = dmc.make(cfg)
 
         if cfg.pixels:
             env = FrameStack(env, k=cfg.frame_stack)
+
             def set_seed(seed):
                 return env.env.env._env.task.random.seed(seed)
+
         else:
+
             def set_seed(seed):
                 return env.env._env.task.random.seed(seed)
 
@@ -271,13 +320,12 @@ class timer(object):
         self.start_time = time.time()
 
     def __exit__(self, *args):
-        print(f'{self.message}: {time.time() - self.start_time}')
+        print(f"{self.message}: {time.time() - self.start_time}")
 
 
 def soft_update_params(net, target_net, tau):
     for param, target_param in zip(net.parameters(), target_net.parameters()):
-        target_param.data.copy_(tau * param.data +
-                                (1 - tau) * target_param.data)
+        target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
 
 
 def get_params(models):
@@ -315,7 +363,7 @@ def preprocess_obs_targets(obs, bits=5):
     bins = 2**bits
     assert obs.dtype == torch.float32
     if bits < 8:
-        obs = torch.floor(obs / 2**(8 - bits))
+        obs = torch.floor(obs / 2 ** (8 - bits))
     obs = obs / bins
     obs = obs + torch.rand_like(obs) / bins
     obs = obs - 0.5
@@ -332,7 +380,8 @@ class FrameStack(gym.Wrapper):
             low=0,
             high=1,
             shape=((shp[0] * k,) + shp[1:]),
-            dtype=env.observation_space.dtype)
+            dtype=env.observation_space.dtype,
+        )
         self._max_episode_steps = env._max_episode_steps
 
     def reset(self):
@@ -355,7 +404,7 @@ def weight_init(m):
     """Custom weight init for Conv2D and Linear layers."""
     if isinstance(m, nn.Linear):
         nn.init.orthogonal_(m.weight.data)
-        if hasattr(m.bias, 'data'):
+        if hasattr(m.bias, "data"):
             m.bias.data.fill_(0.0)
     elif isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
         # delta-orthogonal init from https://arxiv.org/pdf/1806.05393.pdf
@@ -363,7 +412,7 @@ def weight_init(m):
         m.weight.data.fill_(0.0)
         m.bias.data.fill_(0.0)
         mid = m.weight.size(2) // 2
-        gain = nn.init.calculate_gain('relu')
+        gain = nn.init.calculate_gain("relu")
         nn.init.orthogonal_(m.weight.data[:, :, mid, mid], gain)
 
 
@@ -386,20 +435,16 @@ def squash(mu, pi, log_pi):
 
 
 class MLP(nn.Module):
-    def __init__(self,
-                 input_dim,
-                 output_dim,
-                 hidden_dim,
-                 hidden_depth,
-                 output_mod=None):
+    def __init__(
+        self, input_dim, output_dim, hidden_dim, hidden_depth, output_mod=None
+    ):
         super().__init__()
         if isinstance(output_mod, str):
-            if output_mod == 'tanh':
+            if output_mod == "tanh":
                 output_mod = torch.nn.Tanh()
             else:
                 assert False
-        self.trunk = mlp(input_dim, hidden_dim, output_dim, hidden_depth,
-                         output_mod)
+        self.trunk = mlp(input_dim, hidden_dim, output_dim, hidden_depth, output_mod)
         self.apply(weight_init)
 
     def forward(self, x):
@@ -477,7 +522,7 @@ class TanhTransform(pyd.transforms.Transform):
     def log_abs_det_jacobian(self, x, y):
         # We use a formula that is more numerically stable, see details in the following link
         # https://github.com/tensorflow/probability/commit/ef6bb176e0ebd1cf6e25c6b5cecdd2428c22963f#diff-e120f70e92e6741bca649f04fcd907b7
-        return 2. * (math.log(2.) - x - F.softplus(-2. * x))
+        return 2.0 * (math.log(2.0) - x - F.softplus(-2.0 * x))
 
 
 class SquashedNormal(pyd.transformed_distribution.TransformedDistribution):
@@ -500,8 +545,7 @@ class SquashedNormal(pyd.transformed_distribution.TransformedDistribution):
         return self.base_dist.entropy()
 
 
-class SquashedMultivariateNormal(
-        pyd.transformed_distribution.TransformedDistribution):
+class SquashedMultivariateNormal(pyd.transformed_distribution.TransformedDistribution):
     def __init__(self, loc, scale_tril):
         self.loc = loc
         self.scale_tril = scale_tril
@@ -523,13 +567,13 @@ class Overrides(object):
         self.kvs = dict()
 
     def add(self, key, value):
-        assert ',' not in value # only single values
+        assert "," not in value  # only single values
         self.kvs[key] = value
 
     def cmd(self):
         cmd = []
         for k, v in self.kvs.items():
-            cmd.append(f'{k}={v}')
+            cmd.append(f"{k}={v}")
         return cmd
 
 
@@ -549,7 +593,6 @@ class freeze_env(object):
             self._env.env._env._step_count = self._step_count
 
 
-
 class freeze_gym_env(object):
     def __init__(self, env):
         self._env = env
@@ -558,7 +601,8 @@ class freeze_gym_env(object):
 
     def __enter__(self):
         self._init_state = (
-            self.mj_env.data.qpos.ravel().copy(), self.mj_env.data.qvel.ravel().copy()
+            self.mj_env.data.qpos.ravel().copy(),
+            self.mj_env.data.qvel.ravel().copy(),
         )
         self._elapsed_steps = self.time_env._elapsed_steps
 
@@ -566,37 +610,38 @@ class freeze_gym_env(object):
         self.mj_env.set_state(*self._init_state)
         self.time_env._elapsed_steps = self._elapsed_steps
 
+
 class freeze_mbbl_env(object):
     def __init__(self, env):
         self._env = env.env
         self.env_name = self._env._env_name
-        if 'gym_pets' in self.env_name or self.env_name == 'gym_fswimmer':
+        if "gym_pets" in self.env_name or self.env_name == "gym_fswimmer":
             self.mj_env = self._env._env
         else:
             self.time_env = self._env._env
             self.mj_env = self.time_env.env
 
     def __enter__(self):
-        if self._env._env_name == 'gym_pendulum':
+        if self._env._env_name == "gym_pendulum":
             self._init_state = self.mj_env.state.copy()
         else:
             self._init_state = (
                 self.mj_env.data.qpos.ravel().copy(),
-                self.mj_env.data.qvel.ravel().copy()
+                self.mj_env.data.qvel.ravel().copy(),
             )
 
-        if 'gym_pets' not in self.env_name and self.env_name != 'gym_fswimmer':
+        if "gym_pets" not in self.env_name and self.env_name != "gym_fswimmer":
             self._elapsed_steps = self.time_env._elapsed_steps
 
         self._current_step = self._env._current_step
 
     def __exit__(self, *args):
-        if self._env._env_name == 'gym_pendulum':
+        if self._env._env_name == "gym_pendulum":
             self.mj_env.state = self._init_state
         else:
             self.mj_env.set_state(*self._init_state)
 
-        if 'gym_pets' not in self.env_name and self.env_name != 'gym_fswimmer':
+        if "gym_pets" not in self.env_name and self.env_name != "gym_fswimmer":
             self.time_env._elapsed_steps = self._elapsed_steps
         self._env._current_step = self._current_step
 
@@ -609,26 +654,27 @@ def to_np(t):
     else:
         return t.cpu().detach().numpy()
 
+
 def accum_prod(x):
     assert x.dim() == 2
     x_accum = [x[0]]
-    for i in range(x.size(0)-1):
-        x_accum.append(x_accum[-1]*x[i])
+    for i in range(x.size(0) - 1):
+        x_accum.append(x_accum[-1] * x[i])
     x_accum = torch.stack(x_accum, dim=0)
     return x_accum
+
 
 import numpy as np
 
 # https://pswww.slac.stanford.edu/svn-readonly/psdmrepo/RunSummary/trunk/src/welford.py
 class Welford(object):
-    """Knuth implementation of Welford algorithm.
-    """
+    """Knuth implementation of Welford algorithm."""
 
     def __init__(self, x=None):
-        self._K = np.float64(0.)
-        self.n = np.float64(0.)
-        self._Ex = np.float64(0.)
-        self._Ex2 = np.float64(0.)
+        self._K = np.float64(0.0)
+        self.n = np.float64(0.0)
+        self._Ex = np.float64(0.0)
+        self._Ex2 = np.float64(0.0)
         self.shape = None
         self._min = None
         self._max = None
@@ -636,13 +682,12 @@ class Welford(object):
         self.__call__(x)
 
     def add_data(self, x):
-        """Add data.
-        """
+        """Add data."""
         if x is None:
             return
 
         x = np.array(x)
-        self.n += 1.
+        self.n += 1.0
         if not self._init:
             self._init = True
             self._K = x
@@ -661,23 +706,21 @@ class Welford(object):
         self.add_data(x)
 
     def max(self):
-        """Max value for each element in array.
-        """
+        """Max value for each element in array."""
         return self._max
 
     def min(self):
-        """Min value for each element in array.
-        """
+        """Min value for each element in array."""
         return self._min
 
     def mean(self, axis=None):
         """Compute the mean of accumulated data.
 
-           Parameters
-           ----------
-           axis: None or int or tuple of ints, optional
-                Axis or axes along which the means are computed. The default is to
-                compute the mean of the flattened array.
+        Parameters
+        ----------
+        axis: None or int or tuple of ints, optional
+             Axis or axes along which the means are computed. The default is to
+             compute the mean of the flattened array.
         """
         if self.n < 1:
             return None
@@ -689,29 +732,29 @@ class Welford(object):
             return val
 
     def sum(self, axis=None):
-        """Compute the sum of accumulated data.
-        """
-        return self.mean(axis=axis)*self.n
+        """Compute the sum of accumulated data."""
+        return self.mean(axis=axis) * self.n
 
     def var(self):
-        """Compute the variance of accumulated data.
-        """
+        """Compute the variance of accumulated data."""
         if self.n <= 1:
-            return  np.zeros(self.shape)
+            return np.zeros(self.shape)
 
-        val = np.array((self._Ex2 - (self._Ex*self._Ex)/np.float64(self.n)) / np.float64(self.n-1.))
+        val = np.array(
+            (self._Ex2 - (self._Ex * self._Ex) / np.float64(self.n))
+            / np.float64(self.n - 1.0)
+        )
 
         return val
 
     def std(self):
-        """Compute the standard deviation of accumulated data.
-        """
+        """Compute the standard deviation of accumulated data."""
         return np.sqrt(self.var())
 
-#    def __add__(self, val):
-#        """Add two Welford objects.
-#        """
-#
+    #    def __add__(self, val):
+    #        """Add two Welford objects.
+    #        """
+    #
 
     def __str__(self):
         if self._init:
@@ -721,4 +764,3 @@ class Welford(object):
 
     def __repr__(self):
         return "< Welford: {:} >".format(str(self))
-
