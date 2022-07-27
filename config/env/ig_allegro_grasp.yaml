@@ -2,7 +2,7 @@
 env_name: ig_allegro_grasp
 task_name: AllegroHandGrasp
 
-num_envs: 64
+num_envs: 1
 num_train_steps: 1e7
 eval_freq: 25000
 replay_buffer_capacity: 1e6
@@ -26,7 +26,8 @@ pipeline: 'gpu'
 # device for running physics simulation
 sim_device: 'cuda:0'
 # device to run RL
-rl_device: 'cuda:0'
+device: 'cuda:0'
+rl_device: ${device}
 graphics_device_id: 0
 
 ## PhysX arguments
@@ -63,6 +64,7 @@ hydra:
 
 # if given, will override the device setting in gym.
 task:
+  name: ${task_name}
   env:
     numEnvs: ${num_envs}
     envSpacing: 0.75
@@ -219,23 +221,25 @@ task:
   # set to True if you use camera sensors in the environment
   enableCameraSensors: False
 
-sim:
-  dt: 0.01667 # 1/60
-  substeps: 4
-  up_axis: "z"
-  use_gpu_pipeline: true
-  gravity: [0.0, 0.0, -9.81]
-  physx:
-    num_threads: 4
-    solver_type: 1
-    use_gpu: true # set to False to run on CPU
-    num_position_iterations: 8
-    num_velocity_iterations: 0
-    max_gpu_contact_pairs: 8388608 # 8*1024*1024
-    num_subscenes: 4
-    contact_offset: 0.002
-    rest_offset: 0.0
-    bounce_threshold_velocity: 0.2
-    max_depenetration_velocity: 1000.0
-    default_buffer_size_multiplier: 5.0
-    contact_collection: 0 # 0: CC_NEVER (don't collect contact info), 1: CC_LAST_SUBSTEP (collect only contacts on last substep), 2: CC_ALL_SUBSTEPS (default - all contacts)
+  physics_engine: 'physx'
+
+  sim:
+    dt: 0.01667 # 1/60
+    substeps: 4
+    up_axis: "z"
+    use_gpu_pipeline: true
+    gravity: [0.0, 0.0, -9.81]
+    physx:
+      num_threads: 4
+      solver_type: 1
+      use_gpu: true # set to False to run on CPU
+      num_position_iterations: 8
+      num_velocity_iterations: 0
+      max_gpu_contact_pairs: 8388608 # 8*1024*1024
+      num_subscenes: 4
+      contact_offset: 0.002
+      rest_offset: 0.0
+      bounce_threshold_velocity: 0.2
+      max_depenetration_velocity: 1000.0
+      default_buffer_size_multiplier: 5.0
+      contact_collection: 0 # 0: CC_NEVER (don't collect contact info), 1: CC_LAST_SUBSTEP (collect only contacts on last substep), 2: CC_ALL_SUBSTEPS (default - all contacts)

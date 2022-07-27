@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import numpy as np
+import isaacgym
 import torch
 import copy
 import os

@@ -243,6 +243,7 @@ def make_norm_env(cfg):
     elif cfg.env_name == "ig_allegro_grasp":
         import isaacgymenvs
         from isaacgymenvs.utils.utils import set_seed
+        from .env.wrappers import IsaacGymWrapper
 
         env = isaacgymenvs.make(
             cfg.seed,
@@ -257,6 +258,7 @@ def make_norm_env(cfg):
             cfg.force_render,
             cfg,
         )
+        env = IsaacGymWrapper(env)
 
     else:
         assert cfg.env_name.startswith("dmc_")
