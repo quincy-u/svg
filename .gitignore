@@ -8,3 +8,5 @@ data/fig
 
 __pycache__/
 *.egg-info/
+
+wandb/
