@@ -260,6 +260,28 @@ def make_norm_env(cfg):
         )
         env = IsaacGymWrapper(env)
 
+    elif cfg.env_name == "claw_grasp":
+        import pdb
+        from dmanip.envs import ClawWarpEnv
+        from dmanip.config import ClawWarpConfig
+        from dmanip.utils.common import set_seed
+        from dmanip.utils.run_utils import parse_diff_env_kwargs
+        from .env.wrappers import WarpEnvWrapper
+
+        env_kwargs = parse_diff_env_kwargs(
+            {
+                "stochastic_env": cfg.diff_env.stochastic_env,
+                "episode_length": cfg.diff_env.episode_length,
+                "goal_type": cfg.diff_env.goal_type,
+                "action_type": cfg.diff_env.action_type,
+                "object_type": cfg.diff_env.object_type,
+            }
+        )
+
+        env_config = ClawWarpConfig(seed=cfg.seed, num_envs=1, **env_kwargs)
+        env = ClawWarpEnv(env_config)
+        env = WarpEnvWrapper(env)
+
     else:
         assert cfg.env_name.startswith("dmc_")
         from .env import dmc

@@ -1,7 +1,7 @@
 defaults:
   - env: mbpo_ant
-  # - hydra/sweeper: svg
-  - hydra/launcher: submitit_slurm
+  # - override hydra/sweeper: svg
+  - override hydra/launcher: submitit_slurm
 
 experiment: test
 
