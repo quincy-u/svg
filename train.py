@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import numpy as np
+
 # import isaacgym
 import torch
 import copy
@@ -10,6 +11,9 @@ import sys
 import shutil
 import time
 import pickle as pkl
+from omegaconf import OmegaConf
+import yaml
+
 
 from setproctitle import setproctitle
 
@@ -17,6 +21,7 @@ setproctitle("svg")
 
 import hydra
 import hydra_plugins
+import wandb
 
 from svg import sweeper
 
@@ -57,10 +62,8 @@ class Workspace(object):
         self.episode_step = 0
         self.episode_reward = 0
         self.done = False
-        if cfg.env_name in ["claw_grasp", "allegro_grasp"]:
-            self.score_keys = cfg.score_keys
-        else:
-            self.score_keys = []
+        self.score_keys = []
+        self.score_keys = cfg.score_keys
 
         cfg.obs_dim = int(self.env.observation_space.shape[0])
         cfg.action_dim = self.env.action_space.shape[0]
@@ -113,10 +116,13 @@ class Workspace(object):
                 episode_reward += reward
             episode_rewards.append(episode_reward)
             for key in self.score_keys:
-                self.logger.log(f"eval/{key}", info[key], self.step)
+                self.logger.log(f"eval/scores/{key}/step", info[key], self.step)
+                self.logger.log(f"eval/scores/{key}/time", info[key], self.step)
+                self.logger.log(f"eval/scores/{key}/iter", info[key], self.step)
 
             self.video_recorder.save(f"{self.step}.mp4")
             self.logger.log("eval/episode_reward", episode_reward, self.step)
+            self.logger.log("rewards/step", episode_reward, self.step)
         if self.cfg.fixed_eval:
             self.env.set_seed(None)
         self.logger.dump(self.step)
@@ -137,13 +143,20 @@ class Workspace(object):
                     self.logger.log(
                         "train/episode_reward", self.episode_reward, self.step
                     )
-                    self.logger.log(
-                        "train/duration", time.time() - start_time, self.step
-                    )
+                    time_elapsed = time.time() - start_time
+                    self.logger.log("train/duration", time_elapsed, self.step)
                     self.logger.log("train/episode", self.episode, self.step)
                     for key in self.score_keys:
                         if key in self.info:
-                            self.logger.log(f"train/{key}", self.info[key], self.step)
+                            self.logger.log(
+                                f"train/scores/{key}/step", self.info[key], self.step
+                            )
+                            self.logger.log(
+                                f"train/scores/{key}/iter", self.info[key], self.step
+                            )
+                            self.logger.log(
+                                f"train/scores/{key}/time", self.info[key], time_elapsed
+                            )
 
                     start_time = time.time()
                     self.logger.dump(
@@ -273,6 +286,15 @@ def main(cfg):
         with open(fname, "rb") as f:
             workspace = pkl.load(f)
     else:
+        cfg_yaml = OmegaConf.to_yaml(cfg)
+        params = yaml.safe_load(cfg_yaml)
+        wandb.init(
+            project="svg",
+            config=params,
+            entity="krshna",
+            sync_tensorboard=True,
+            resume="allow",
+        )
         workspace = W(cfg)
 
     workspace.run()

@@ -26,3 +26,6 @@ diff_env:
     action_type: 1 # 0: position, 1: torque
     object_type: 8
     device: "cuda"
+
+
+score_keys: ["control_pen", "ftip_err", "q_err", "pos_err", "force_err"]

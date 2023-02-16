@@ -5,11 +5,11 @@ num_train_steps: 1e6
 eval_freq: 25000
 
 agent:
-  horizon: 3
+  horizon: 0
   warmup_steps: 10000
 
 replay_buffer_capacity: 1e6
-normalize_obs: false
+normalize_obs: true
 delete_replay_at_end: false
 
 learn_temp:
@@ -23,6 +23,8 @@ diff_env:
     stochastic_env: True
     episode_length: 250
     goal_type: 1 # 0: position, 1: orientation, 2: both, 3: position trajectory, 4: orientation trajectory
-    action_type: 0 # 0: position, 1: torque
+    action_type: 1 # 0: position, 1: torque
     object_type: 8
     device: "cuda"
+
+score_keys: ["control_pen", "ftip_err", "q_err", "pos_err", "force_err"]
