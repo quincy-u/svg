@@ -23,6 +23,6 @@ diff_env:
     stochastic_env: True
     episode_length: 250
     goal_type: 1 # 0: position, 1: orientation, 2: both, 3: position trajectory, 4: orientation trajectory
-    action_type: 0 # 0: position, 1: torque
+    action_type: 2 # 0: position, 1: torque
     object_type: 8
     device: "cuda"

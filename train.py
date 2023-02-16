@@ -57,6 +57,10 @@ class Workspace(object):
         self.episode_step = 0
         self.episode_reward = 0
         self.done = False
+        if cfg.env_name in ["claw_grasp", "allegro_grasp"]:
+            self.score_keys = cfg.score_keys
+        else:
+            self.score_keys = []
 
         cfg.obs_dim = int(self.env.observation_space.shape[0])
         cfg.action_dim = self.env.action_space.shape[0]
@@ -81,6 +85,7 @@ class Workspace(object):
         self.video_recorder = VideoRecorder(self.work_dir if cfg.save_video else None)
 
         self.step = 0
+        self.info = {}
         self.steps_since_eval = 0
         self.steps_since_save = 0
         self.best_eval_rew = None
@@ -103,10 +108,12 @@ class Workspace(object):
                         action = self.agent.act(obs_norm, sample=False)
                     else:
                         action = self.agent.act(obs, sample=False)
-                obs, reward, done, _ = self.env.step(action)
+                obs, reward, done, info = self.env.step(action)
                 self.video_recorder.record(self.env)
                 episode_reward += reward
             episode_rewards.append(episode_reward)
+            for key in self.score_keys:
+                self.logger.log(f"eval/{key}", info[key], self.step)
 
             self.video_recorder.save(f"{self.step}.mp4")
             self.logger.log("eval/episode_reward", episode_reward, self.step)
@@ -134,6 +141,10 @@ class Workspace(object):
                         "train/duration", time.time() - start_time, self.step
                     )
                     self.logger.log("train/episode", self.episode, self.step)
+                    for key in self.score_keys:
+                        if key in self.info:
+                            self.logger.log(f"train/{key}", self.info[key], self.step)
+
                     start_time = time.time()
                     self.logger.dump(
                         self.step, save=(self.step > self.cfg.num_seed_steps)
@@ -185,7 +196,7 @@ class Workspace(object):
             if self.step >= self.cfg.num_seed_steps - 1:
                 self.agent.update(self.replay_buffer, self.logger, self.step)
 
-            next_obs, reward, self.done, _ = self.env.step(action)
+            next_obs, reward, self.done, self.info = self.env.step(action)
 
             # allow infinite bootstrap
             done_float = float(self.done)
