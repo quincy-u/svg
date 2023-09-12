@@ -154,5 +154,5 @@ hydra:
     max_num_timeout: 100000
     timeout_min: 4319
     partition: scavenge
-    mem_gb: 64
+    mem_gb: 16
     gpus_per_node: 1

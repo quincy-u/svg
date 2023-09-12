@@ -62,8 +62,10 @@ class Workspace(object):
         self.episode_step = 0
         self.episode_reward = 0
         self.done = False
-        self.score_keys = []
-        self.score_keys = cfg.score_keys
+        if "score_keys" in cfg:
+            self.score_keys = cfg.score_keys
+        else:
+            self.score_keys = []
 
         cfg.obs_dim = int(self.env.observation_space.shape[0])
         cfg.action_dim = self.env.action_space.shape[0]
@@ -112,6 +114,15 @@ class Workspace(object):
                     else:
                         action = self.agent.act(obs, sample=False)
                 obs, reward, done, info = self.env.step(action)
+                
+                # preprocessing ORBIT obs
+                if isinstance(obs, dict):
+                    obs = obs["policy"]
+                if isinstance(obs, torch.Tensor):
+                    obs = obs.cpu().numpy()
+                if isinstance(reward, torch.Tensor):
+                    reward = reward.cpu().numpy()
+                    
                 self.video_recorder.record(self.env)
                 episode_reward += reward
             episode_rewards.append(episode_reward)
@@ -193,6 +204,12 @@ class Workspace(object):
                 self.episode_step = 0
                 self.episode += 1
 
+            # preprocessing ORBIT obs
+            if isinstance(obs, dict):
+                obs = obs["policy"]
+            if isinstance(obs, torch.Tensor):
+                obs = obs.cpu().numpy()
+                
             # sample action for data collection
             if self.step < self.cfg.num_seed_steps:
                 action = self.env.action_space.sample()
@@ -210,16 +227,24 @@ class Workspace(object):
                 self.agent.update(self.replay_buffer, self.logger, self.step)
 
             next_obs, reward, self.done, self.info = self.env.step(action)
+            
+            # preprocessing ORBIT next_obs and reward
+            if isinstance(next_obs, dict):
+                next_obs = next_obs["policy"]
+            if isinstance(next_obs, torch.Tensor):
+                next_obs = next_obs.cpu().numpy()
+            if isinstance(reward, torch.Tensor):
+                reward = reward.cpu().numpy()
 
             # allow infinite bootstrap
             done_float = float(self.done)
             done_no_max = (
                 done_float
-                if self.episode_step + 1 < self.env._max_episode_steps
+                if self.episode_step + 1 < self.env.max_episode_length
                 else 0.0
             )
             self.episode_reward += reward
-
+                
             self.replay_buffer.add(
                 obs, action, reward, next_obs, done_float, done_no_max
             )
@@ -291,7 +316,7 @@ def main(cfg):
         wandb.init(
             project="svg",
             config=params,
-            entity="krshna",
+            entity="quincyouxiang",
             sync_tensorboard=True,
             resume="allow",
         )

@@ -281,6 +281,32 @@ def make_norm_env(cfg):
         env_config = ClawWarpConfig(seed=cfg.seed, num_envs=1, **env_kwargs)
         env = ClawWarpEnv(env_config)
         env = WarpEnvWrapper(env)
+        
+    elif cfg.env_name == "needle_handover":
+        # config
+        task = "Isaac-Needle-DualArmPSM-v0"
+        cpu = False
+        headless = True
+        num_envs = 1
+        
+        
+        from omni.isaac.kit import SimulationApp
+        
+        config = {"headless": headless}
+        simulation_app = SimulationApp(config)
+        
+        import gym
+
+        import omni.isaac.contrib_envs  # noqa: F401
+        import omni.isaac.orbit_envs  # noqa: F401
+        from omni.isaac.orbit_envs.utils import parse_env_cfg
+        # parse configuration
+        env_cfg = parse_env_cfg(task, use_gpu=not cpu, num_envs=num_envs)
+        # create environment
+        env = gym.make(task, cfg=env_cfg, headless=headless)
+
+        # reset environment
+        env.reset()
 
     else:
         assert cfg.env_name.startswith("dmc_")
@@ -299,7 +325,7 @@ def make_norm_env(cfg):
             def set_seed(seed):
                 return env.env._env.task.random.seed(seed)
 
-    env.set_seed = set_seed
+        env.set_seed = set_seed
 
     return env
 

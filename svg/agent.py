@@ -170,7 +170,7 @@ class SACSVGAgent(Agent):
                 _, action, _ = self.actor(obs, compute_log_pi=False)
 
         action = action.clamp(*self.action_range)
-        assert action.ndim == 2 and action.shape[0] == 1
+        # assert action.ndim == 2 and action.shape[0] == 1
         return utils.to_np(action[0])
 
 

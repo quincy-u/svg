@@ -102,6 +102,7 @@ class MetersGroup(object):
             value = int(value)
             return f'{key}: {value}'
         elif ty == 'float':
+            value = float(value)
             return f'{key}: {value:.04f}'
         elif ty == 'time':
             return f'{key}: {value:04.1f} s'
